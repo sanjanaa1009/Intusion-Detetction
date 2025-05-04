@@ -1,0 +1,63 @@
+from datetime import datetime
+import pandas as pd
+from blockchain.core import LogBlockchain
+from models.unknownThreat_detector import UnknownThreatClassifier
+
+class SecurityMonitor:
+    def __init__(self, blockchain_path: str = None):
+        """
+        Initialize with optional persisted blockchain
+        
+        Args:
+            blockchain_path: Path to saved blockchain state
+        """
+        self.blockchain = LogBlockchain.load(blockchain_path) if blockchain_path else LogBlockchain()
+        self.detector = UnknownThreatClassifier.load('models/unknown_threat_model.joblib')
+        
+    def process_logs(self, logs_df: pd.DataFrame, batch_size: int = 100) -> None:
+        """
+        Process logs in batches with blockchain integration
+        
+        Args:
+            logs_df: DataFrame containing log entries
+            batch_size: Number of logs per blockchain block
+        """
+        # 1. Detect threats
+        results = self.detector.detect_batch(logs_df)
+        
+        # 2. Process in batches
+        for i in range(0, len(logs_df), batch_size):
+            batch = logs_df.iloc[i:i+batch_size]
+            
+            # 3. Add to blockchain
+            for _, log in batch.iterrows():
+                self._add_log_to_chain(log, results.loc[log.name])
+            
+            # 4. Mine block
+            self.blockchain.mine_pending_logs()
+            
+            # 5. Validate
+            if not self.blockchain.validate_chain():
+                raise RuntimeError("Blockchain integrity compromised!")
+    
+    def _add_log_to_chain(self, log: pd.Series, detection: dict) -> None:
+        """Prepare and add single log to blockchain"""
+        threat_record = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": log.get('source', 'unknown'),
+            "raw_message": log['message'],
+            "detection_results": detection,
+            "metadata": {
+                "log_level": log.get('level'),
+                "source_ip": log.get('ip')
+            }
+        }
+        self.blockchain.add_log(threat_record)
+    
+    def save_state(self, path: str) -> None:
+        """Persist blockchain state"""
+        self.blockchain.save(path)
+    
+    def get_detected_threats(self) -> pd.DataFrame:
+        """Get all threats from blockchain"""
+        return self.blockchain.to_dataframe()
