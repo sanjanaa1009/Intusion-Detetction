@@ -180,7 +180,7 @@ def load_models():
     
     def load_lgbm():
         
-        file_id = "1Bjri7bIBhy7CKwUOcJWpDm7F3qmV2tkp/"
+        file_id = "1Bjri7bIBhy7CKwUOcJWpDm7F3qmV2tkp"
         url = f"https://drive.google.com/uc?id={file_id}"
         output = "anomaly_detection_models_multiclass.joblib"
 
