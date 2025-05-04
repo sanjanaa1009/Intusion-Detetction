@@ -1,2 +1,2 @@
-# Intrusion detectoion System using ml and blockchain
+# Intrusion detection System using ml and blockchain
 
