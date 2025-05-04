@@ -12,6 +12,9 @@ from blockchain.core import LogBlockchain
 from concurrent.futures import ThreadPoolExecutor
 import re
 from datetime import datetime
+import os
+import gdown
+import joblib
 
 # =============================================
 # SETUP & CONFIGURATION
@@ -176,9 +179,18 @@ def load_models():
     progress_bar = st.progress(0, text="Loading AI engines...")
     
     def load_lgbm():
-        model = AnomalyDetectionSystem()
-        model.load_models('anomaly_detection_models')
-        return model
+        
+        file_id = "1Bjri7bIBhy7CKwUOcJWpDm7F3qmV2tkp/"
+        url = f"https://drive.google.com/uc?id={file_id}"
+        output = "anomaly_detection_models_multiclass.joblib"
+
+# Only download if not already present
+        if not os.path.exists(output):
+             gdown.download(url, output, quiet=False)
+
+        model = joblib.load(output)
+
+        return model 
     
     def load_isoforest():
         return UnknownThreatClassifier.load('unknown_threat_model.joblib')

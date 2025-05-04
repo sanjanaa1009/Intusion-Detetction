@@ -10,3 +10,4 @@ seaborn==0.13.0
 pyarrow==14.0.1  # For parquet support
 tqdm==4.66.1  # Optional for progress bars
 python-dateutil==2.8.2  # For datetime parsing in logs
+gdown
